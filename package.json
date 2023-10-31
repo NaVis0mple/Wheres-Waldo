@@ -12,7 +12,9 @@
   },
   "dependencies": {
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.17.0",
+    "styled-components": "^6.1.0"
   },
   "devDependencies": {
     "@babel/core": "^7.22.11",
@@ -25,6 +27,7 @@
     "@types/react": "^18.2.15",
     "@types/react-dom": "^18.2.7",
     "@vitejs/plugin-react": "^4.0.3",
+    "babel-plugin-styled-components": "^2.1.4",
     "eslint": "^8.45.0",
     "eslint-config-prettier": "^9.0.0",
     "eslint-config-standard": "^17.1.0",

@@ -1,0 +1,28 @@
+.correct {
+    z-index: 1000;
+    position: fixed;
+    right: 0;
+    top: 0;
+    background-color: rgb(48, 184, 116);
+    padding: 10px 5vw;
+    animation: fadeout 1s ease 1s forwards;
+}
+
+.wrong {
+    z-index: 1000;
+    position: fixed;
+    right: 0;
+    top: 0;
+    background-color: rgb(196, 57, 33);
+    padding: 10px 5vw;
+    animation: fadeout 1s ease 1s forwards;
+}
+
+@keyframes fadeout {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}

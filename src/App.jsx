@@ -1,82 +1,125 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import './App.css'
 import img from '../src/img.jpg'
 import catman from '../src/catman.png'
 import fishman from '../src/fishman.png'
 import greenman from '../src/greenman.png'
-
-const targetlist = []
-const target1 = {
-  name: 'fishman',
-  top: 0.8403480451986298,
-  left: 0.5103324348607368,
-  right: 0.5579514824797843,
-  bottom: 0.9386196306941218,
-  imgsrc: fishman
-}
-const target2 = {
-  name: 'greenman',
-  top: 0.3389109807472735,
-  left: 0.44833782569631625,
-  right: 0.5076370170709793,
-  bottom: 0.42710342926886885,
-  imgsrc: greenman
-}
-
-const target3 = {
-  name: 'catman',
-  top: 0.34647033347769596,
-  left: 0.025157232704402517,
-  right: 0.06558849955076371,
-  bottom: 0.4107248316862869,
-  imgsrc: catman
-}
-
-targetlist.push(target1, target2, target3)
+import { styled } from 'styled-components'
+import Check from './check'
+import Time from './time'
+import Recordpost from './recordPost'
 
 function App () {
+  const [isStarted, setIsStarted] = useState(false)
   const imgContainerRef = useRef(null)
   const [targetListPos, setTargetListPos] = useState({ x: 0, y: 0 })
+  const [checkStatus, setCheckStatus] = useState({ target: null, status: false })
+  const [targetImg, setTargetImg] = useState(['catman', 'fishman', 'greenman'])
+  const [count, setCount] = useState(0)
+  const [winStatus, setWinStatus] = useState(false)
+  // // fetch targetlist http://localhost:3000/api/targetlist
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     try {
+  //       const response = await fetch('http://localhost:3000/api/targetlist')
+  //       if (response.ok) {
+  //         const data = await response.json()
+  //         setTargetList(data)
+  //       }
+  //     } catch (err) {
+  //       console.error(err)
+  //     }
+  //   }
+  //   fetchData()
+  // }, [])
+
+  useEffect(() => { // win check
+    if (targetImg.length === 0) {
+      setWinStatus(true)
+    }
+  }, [targetImg])
+
+  function handleStartClick () {
+    setIsStarted(true)
+  }
   function handleClick (e) {
+    if (!isStarted) {
+      return
+    }
+
+    // event delegation
     const imgContainer = imgContainerRef.current
-    if (imgContainer) {
-      const rect = imgContainer.getBoundingClientRect()
-      const x = (e.pageX - rect.left) / rect.width
-      const y = (e.pageY - rect.top) / rect.height
-      setTargetListPos({ x, y })
-      // check
-      for (const target of targetlist) {
-        if (target.left < x && x < target.right && target.top < y && y < target.bottom) {
-          console.log(target.name + 'bingo')
-        } else {
-          console.log(target.name + 'miss')
-        }
+    if (e.target.id === 'big') {
+      // click the img
+      if (imgContainer) {
+        const rect = imgContainer.getBoundingClientRect()
+        const x = (e.pageX - rect.left) / rect.width
+        const y = (e.pageY - rect.top) / rect.height
+        setTargetListPos({ x, y })
       }
+    } else if (e.target.id !== 'big') {
+      // send check to backend
+      const formData = new FormData()
+      formData.append('x', targetListPos.x)
+      formData.append('y', targetListPos.y)
+      formData.append('checkTarget', e.target.id)
+      fetch('http://localhost:3000/api/check', {
+        method: 'POST',
+        body: formData // no need to set header content-type
+      })
+        .then(response => {
+          return response.json()
+        })
+        .then(result => {
+          setCheckStatus({ target: result.checkTarget, status: result.checkResult, date: Date.now() })
+          if (result.checkResult) {
+            const target = targetImg.filter((value) => value !== result.checkTarget)
+            setTargetImg(target)
+          }
+        })
+        .catch(err => {
+          console.log(err)
+        })
     }
   }
   return (
     <>
-      <div className='imgContainer' ref={imgContainerRef} onClick={handleClick}>
-        <img src={img} alt='' />
-        <ul style={{
-          position: 'absolute',
 
+      <div className=' imgContainer ' style={{ }} ref={imgContainerRef} onClick={(e) => handleClick(e)}>
+
+        {isStarted
+          ? null
+          : <>
+            <div className='overlay' />
+            <button onClick={() => handleStartClick()}>start</button>
+            </>}
+        <img src={img} id='big' alt='' />
+        <ul style={{
           top: targetListPos.y * 100 + '%',
           left: targetListPos.x * 100 + '%',
-          transform: `${(targetListPos.x + 0.5 > 1) ? 'translateX(-100%)' : ''} ${(targetListPos.y + 0.5 > 1) ? 'translateY(-100%)' : ''}`, // this is genius
-          backgroundColor: 'white',
-          zIndex: 999,
-          transformOrigin: 'top left',
-          margin: 0,
-          padding: 0
+          transform: `${(targetListPos.x + 0.5 > 1) ? 'translateX(-100%)' : ''} ${(targetListPos.y + 0.5 > 1) ? 'translateY(-100%)' : ''}` // this is genius
         }}
         >
-          {targetlist.map((target, index) => (
-            <li style={{ minWidth: '100px' }} key={index}><img src={target.imgsrc} alt='' /></li>
+          {targetImg.map((target, index) => (
+            <li
+              key={target}
+              style={{
+                width: `${(imgContainerRef?.current) ? (imgContainerRef.current.getBoundingClientRect().width / 20) + 'px' : '100px'}` // adjust list to all solution
+              }}
+            >
+              <img
+                id={target}
+                className='target'
+                src={`../src/${target}.png`} alt=''
+              />
+            </li>
           ))}
         </ul>
       </div>
-
+      <Check status={checkStatus} />
+      <Time start={isStarted} setCount={setCount} winStatus={winStatus} count={count} />
+      {winStatus ? <Recordpost timeRecord={count} /> : ''}
+      <a href='http://localhost:5173/rank'>rank</a>
     </>
 
   )
