@@ -92,7 +92,7 @@ function App () {
           : <>
             <div className='overlay' />
             <button onClick={() => handleStartClick()}>start</button>
-            </>}
+          </>}
         <img src={img} id='big' alt='' />
         <ul style={{
           top: targetListPos.y * 100 + '%',
@@ -104,7 +104,7 @@ function App () {
             <li
               key={target}
               style={{
-                width: `${(imgContainerRef?.current) ? (imgContainerRef.current.getBoundingClientRect().width / 20) + 'px' : '100px'}` // adjust list to all solution
+                width: `${(imgContainerRef?.current) ? (imgContainerRef.current.getBoundingClientRect().width / 30) + 'px' : '100px'}` // adjust list to all solution
               }}
             >
               <img
